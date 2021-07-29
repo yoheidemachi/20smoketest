@@ -1,0 +1,37 @@
+version: 2.1
+
+jobs:
+  configure_infrastructure:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: "e5:1a:b6:d5:2a:b1:c1:12:65:68:48:4d:fe:af:a6:a0"
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible # install the dependencies needed for your playbook
+      - run:
+          name: Configure server
+          command: |
+            ansible-playbook -i inventory.txt main-remote.yml
+  smoke_test:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - run:
+          name: check on a website
+          command: |
+            if curl -s --head "https://google.com" 
+            then
+              echo "It worked!"
+            else
+              echo "It failed"
+            fi
+
+workflows:
+  my_workflow:
+    jobs:
+      - configure_infrastructure
